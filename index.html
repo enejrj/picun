@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Салют из сердец | С 18-летием, Солнышко!</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background: linear-gradient(145deg, #0a0f2a 0%, #030617 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', 'Dancing Script', 'Pacifico', 'Roboto', cursive, sans-serif;
+            overflow: hidden;
+            position: relative;
+            touch-action: manipulation;
+        }
+
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .message-container {
+            position: relative;
+            z-index: 20;
+            text-align: center;
+            pointer-events: none;
+            padding: 20px;
+            animation: gentleFade 1.2s ease-out;
+        }
+
+        .main-message {
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(8px);
+            border-radius: 90px;
+            padding: 20px 38px;
+            display: inline-block;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3), 0 0 0 2px rgba(255,120,160,0.5), 0 0 0 5px rgba(255,200,220,0.2);
+            border: 1px solid rgba(255, 200, 220, 0.7);
+            transition: transform 0.3s;
+        }
+
+        .main-message h1 {
+            font-size: 3rem;
+            background: linear-gradient(135deg, #FFB6C1, #FF69B4, #FF1493);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 20px rgba(255,105,180,0.6);
+            letter-spacing: 2px;
+            font-weight: bold;
+        }
+
+        .main-message p {
+            font-size: 1.7rem;
+            color: #FFE4EF;
+            margin-top: 12px;
+            font-weight: 500;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+
+        .signature {
+            position: fixed;
+            bottom: 18px;
+            left: 18px;
+            z-index: 30;
+            font-size: 0.85rem;
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(4px);
+            padding: 6px 12px;
+            border-radius: 40px;
+            font-family: 'Courier New', monospace;
+            color: #ffd9e6;
+            border-left: 3px solid #ff99bb;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        /* Кнопка ИСКРЫ (добрая, возвращена) */
+        .spark-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 160px;
+            z-index: 50;
+            background: linear-gradient(135deg, #ffb347, #ff8c1a);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-family: 'Segoe UI', monospace;
+            font-weight: bold;
+            font-size: 1rem;
+            color: #2d1b00;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: 0.2s;
+            pointer-events: auto;
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .spark-btn:hover {
+            transform: scale(1.03);
+            background: linear-gradient(135deg, #ffc34d, #ff9f2e);
+            box-shadow: 0 0 15px rgba(255, 160, 50, 0.8);
+        }
+
+        /* Кнопка НЕ ЖМИ */
+        .dont-click-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 25px;
+            z-index: 50;
+            background: linear-gradient(135deg, #ff4d6d, #c9184a);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-family: 'Segoe UI', 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 1rem;
+            letter-spacing: 1px;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 0 12px rgba(255, 50, 80, 0.6);
+            transition: 0.2s;
+            animation: pulseWarning 1.2s infinite;
+            pointer-events: auto;
+        }
+
+        .dont-click-btn:hover {
+            transform: scale(1.03);
+            background: linear-gradient(135deg, #ff1e4d, #a3123a);
+            box-shadow: 0 0 22px rgba(255, 30, 80, 0.9);
+        }
+
+        @keyframes pulseWarning {
+            0% { opacity: 0.9; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.02); box-shadow: 0 0 20px #ff3366; }
+            100% { opacity: 0.9; transform: scale(1); }
+        }
+
+        /* Бедный парень с цветком - выезжающая панель справа */
+        .poor-guy {
+            position: fixed;
+            right: 0;
+            bottom: 100px;
+            z-index: 100;
+            background: rgba(30, 20, 15, 0.92);
+            backdrop-filter: blur(12px);
+            padding: 18px 24px 18px 28px;
+            border-radius: 60px 0 0 60px;
+            border-left: 5px solid #ffb347;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            font-family: 'Segoe UI', 'Comic Neue', sans-serif;
+            transform: translateX(100%);
+            transition: transform 0.5s cubic-bezier(0.34, 1.2, 0.55, 1);
+            box-shadow: -5px 5px 25px rgba(0,0,0,0.5);
+            pointer-events: none;
+            max-width: 90vw;
+        }
+
+        .poor-guy.show {
+            transform: translateX(0%);
+        }
+
+        .guy-avatar {
+            font-size: 3.4rem;
+            filter: drop-shadow(2px 2px 6px rgba(0,0,0,0.5));
+        }
+
+        .guy-text {
+            color: #ffefcf;
+        }
+
+        .guy-text p {
+            margin: 4px 0;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .guy-text .flower-line {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #ffc285;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .close-guy {
+            background: rgba(255,100,100,0.4);
+            border: none;
+            border-radius: 40px;
+            padding: 5px 12px;
+            color: white;
+            font-size: 0.8rem;
+            cursor: pointer;
+            pointer-events: auto;
+            margin-left: 8px;
+            transition: 0.2s;
+        }
+        .close-guy:hover {
+            background: rgba(255,70,70,0.9);
+        }
+
+        @media (max-width: 600px) {
+            .main-message h1 { font-size: 1.9rem; }
+            .main-message p { font-size: 1.2rem; }
+            .signature { font-size: 0.7rem; white-space: normal; max-width: 80%; }
+            .spark-btn { padding: 6px 12px; font-size: 0.75rem; right: 125px; bottom: 20px; }
+            .dont-click-btn { padding: 6px 14px; font-size: 0.8rem; bottom: 20px; right: 15px; }
+            .poor-guy { padding: 12px 18px 12px 20px; bottom: 80px; }
+            .guy-avatar { font-size: 2.5rem; }
+            .guy-text p { font-size: 0.8rem; }
+            .flower-line { font-size: 1rem; }
+        }
+
+        @keyframes gentleFade {
+            0% { opacity: 0; transform: scale(0.95); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="fireworkCanvas"></canvas>
+
+<div class="message-container">
+    <div class="main-message">
+        <h1>❤️ С 18-летием, моё Солнышко! ❤️</h1>
+        <p>От любимого парня с самой нежной любовью ✨</p>
+    </div>
+</div>
+
+<div class="signature">
+    💔 я нищий и денег нет, поэтому от сердца и почек вот цветочек 🌸
+</div>
+
+<!-- Кнопка ДОБАВИТЬ ИСКРЫ (возвращена!) -->
+<button class="spark-btn" id="extraSpark">✨ добавить искр ✨</button>
+
+<!-- Кнопка-провокация "НЕ ЖМИ" -->
+<button class="dont-click-btn" id="forbiddenBtn">🤡 НЕ ЖМИ 🤡</button>
+
+<!-- Выезжающий "Нищий парень с цветочком" -->
+<div id="poorGuyCard" class="poor-guy">
+    <div class="guy-avatar">🧑‍🦱💔</div>
+    <div class="guy-text">
+        <p><strong>🤷‍♂️ Нищий парень признаётся:</strong></p>
+        <p>«Денег нет — даже на хлеб,</p>
+        <p>Но сердце и почки — твои навек!»</p>
+        <div class="flower-line">
+            🌸 Вот тебе цветочек от всей души! 🌸
+            <span style="font-size:1.6rem;">💐</span>
+        </div>
+        <small style="opacity:0.8;">(прости, что нажал(а) на кнопку 😅)</small>
+    </div>
+    <button class="close-guy" id="closeGuyBtn">✖️ закрыть</button>
+</div>
+
+<script>
+    (function() {
+        // ----- ХОЛСТ И ФЕЙЕРВЕРК (сердечки + парящие сердца с текстом) -----
+        const canvas = document.getElementById('fireworkCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        let width, height;
+        let particles = [];
+        let specialHearts = [];
+        
+        const GRAVITY = 0.2;
+        const PARTICLE_COUNT_PER_BURST = 45;
+        
+        let lastBurstTime = 0;
+        const BURST_INTERVAL_MS = 1400;
+        let lastSpecialHeartTime = 0;
+        const SPECIAL_HEART_INTERVAL = 2800;
+        
+        function getRandomBurstPos() {
+            const margin = 80;
+            const x = margin + Math.random() * (width - margin * 2);
+            const y = margin + Math.random() * (height - margin * 2);
+            return { x, y };
+        }
+        
+        function createHeartBurst(centerX, centerY, colorHueShift = null) {
+            const count = PARTICLE_COUNT_PER_BURST + Math.floor(Math.random() * 20);
+            const baseHue = Math.random() * 360;
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 2 + Math.random() * 6;
+                const vx = Math.cos(angle) * speed;
+                const vy = Math.sin(angle) * speed;
+                const size = 6 + Math.random() * 12;
+                let hue;
+                if (colorHueShift !== null) hue = (colorHueShift + (Math.random() * 40 - 20)) % 360;
+                else hue = (baseHue + (Math.random() * 60)) % 360;
+                const sat = 70 + Math.random() * 30;
+                const light = 55 + Math.random() * 35;
+                particles.push({
+                    x: centerX, y: centerY, vx: vx, vy: vy,
+                    size: size, life: 1.0, fade: 0.98 + Math.random() * 0.015,
+                    hue: hue, sat: sat, light: light,
+                    shape: 'heart'
+                });
+            }
+            // искристые звездочки
+            for (let i=0;i<16;i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 2 + Math.random() * 7;
+                const vx = Math.cos(angle) * speed;
+                const vy = Math.sin(angle) * speed;
+                particles.push({
+                    x: centerX, y: centerY, vx: vx, vy: vy,
+                    size: 3 + Math.random() * 6, life: 0.9, fade: 0.96,
+                    hue: 40 + Math.random() * 50, sat: 90, light: 70,
+                    shape: 'circle'
+                });
+            }
+        }
+        
+        function createFloatingTextHeart() {
+            const messages = [
+                "⭐ 18 лет, Солнышко! ⭐",
+                "💖 Люблю тебя бесконечно 💖",
+                "✨ С днём рождения, моя радость ✨",
+                "🌸 Ты — моё сердце 🌸",
+                "🎂 18! Пусть сбываются мечты 🎂",
+                "❤️ От любимого парня ❤️"
+            ];
+            const randomMsg = messages[Math.floor(Math.random() * messages.length)];
+            const x = 50 + Math.random() * (width - 100);
+            const y = -60 - Math.random() * 80;
+            const speedY = 0.6 + Math.random() * 0.7;
+            const speedX = (Math.random() - 0.5) * 0.4;
+            const heartSize = 70 + Math.random() * 30;
+            specialHearts.push({
+                x: x, y: y, vx: speedX, vy: speedY,
+                text: randomMsg,
+                size: heartSize,
+                life: 1.0,
+                opacity: 1,
+                rotation: (Math.random() - 0.5) * 15,
+                color: `hsl(${Math.random() * 20 + 330}, 85%, 68%)`
+            });
+        }
+        
+        function updateParticles() {
+            for (let i = 0; i < particles.length; i++) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += GRAVITY;
+                p.life *= p.fade;
+                if (p.x < -50 || p.x > width + 50 || p.y > height + 100 || p.y < -100 || p.life < 0.02) {
+                    particles.splice(i,1);
+                    i--;
+                }
+            }
+            for (let i=0; i<specialHearts.length; i++) {
+                const h = specialHearts[i];
+                h.x += h.vx;
+                h.y += h.vy;
+                if (h.y > height + 150 || h.x < -150 || h.x > width + 150 || h.y < -150) {
+                    specialHearts.splice(i,1);
+                    i--;
+                    continue;
+                }
+                if (h.y > height - 50) {
+                    h.opacity -= 0.008;
+                    if (h.opacity <= 0.02) {
+                        specialHearts.splice(i,1);
+                        i--;
+                    }
+                } else {
+                    if (h.opacity < 1) h.opacity = Math.min(1, h.opacity + 0.02);
+                }
+            }
+        }
+        
+        function drawHeart(ctx, x, y, size, hue, sat, light, opacity=1) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.scale(size/24, size/24);
+            ctx.beginPath();
+            ctx.moveTo(0, 7);
+            ctx.bezierCurveTo(-6, -3, -14, -8, -12, -15);
+            ctx.bezierCurveTo(-10, -21, -4, -19, 0, -14);
+            ctx.bezierCurveTo(4, -19, 10, -21, 12, -15);
+            ctx.bezierCurveTo(14, -8, 6, -3, 0, 7);
+            ctx.closePath();
+            ctx.fillStyle = `hsla(${hue}, ${sat}%, ${light}%, ${opacity})`;
+            ctx.fill();
+            ctx.restore();
+        }
+        
+        function drawCircle(ctx, x, y, size, hue, sat, light, opacity) {
+            ctx.beginPath();
+            ctx.arc(x, y, size/2, 0, Math.PI*2);
+            ctx.fillStyle = `hsla(${hue}, ${sat}%, ${light}%, ${opacity})`;
+            ctx.fill();
+        }
+        
+        function drawTextHeart(ctx, heart) {
+            const x = heart.x, y = heart.y, size = heart.size, rot = heart.rotation * Math.PI/180;
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(rot);
+            ctx.shadowBlur = 12;
+            ctx.shadowColor = "rgba(255,80,120,0.7)";
+            const scaleFactor = size / 28;
+            ctx.beginPath();
+            ctx.moveTo(0, 7);
+            ctx.bezierCurveTo(-6, -3, -14, -8, -12, -15);
+            ctx.bezierCurveTo(-10, -21, -4, -19, 0, -14);
+            ctx.bezierCurveTo(4, -19, 10, -21, 12, -15);
+            ctx.bezierCurveTo(14, -8, 6, -3, 0, 7);
+            ctx.closePath();
+            ctx.scale(scaleFactor, scaleFactor);
+            const grad = ctx.createLinearGradient(-8, -12, 8, 8);
+            grad.addColorStop(0, `rgba(255, 100, 130, ${heart.opacity*0.9})`);
+            grad.addColorStop(1, `rgba(220, 50, 100, ${heart.opacity})`);
+            ctx.fillStyle = grad;
+            ctx.fill();
+            ctx.strokeStyle = `rgba(255, 220, 200, ${heart.opacity*0.8})`;
+            ctx.lineWidth = 1.2;
+            ctx.stroke();
+            ctx.font = `bold ${Math.floor(14)}px "Segoe UI", "Dancing Script", cursive`;
+            ctx.fillStyle = `rgba(255, 245, 240, ${heart.opacity+0.1})`;
+            ctx.shadowBlur = 5;
+            ctx.shadowColor = "black";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            let displayText = heart.text;
+            if (displayText.length > 20) displayText = displayText.slice(0,18)+"..";
+            ctx.fillText(displayText, 0, 0);
+            ctx.restore();
+        }
+        
+        function draw() {
+            if (!ctx) return;
+            ctx.clearRect(0, 0, width, height);
+            ctx.fillStyle = "rgba(3, 6, 23, 0.25)";
+            ctx.fillRect(0, 0, width, height);
+            for (let p of particles) {
+                if (p.shape === 'heart') drawHeart(ctx, p.x, p.y, p.size, p.hue, p.sat, p.light, p.life * 0.9);
+                else drawCircle(ctx, p.x, p.y, p.size, p.hue, p.sat, p.light, p.life);
+            }
+            for (let h of specialHearts) drawTextHeart(ctx, h);
+        }
+        
+        function burstRandomFirework() {
+            if (!width || !height) return;
+            const pos = getRandomBurstPos();
+            createHeartBurst(pos.x, pos.y);
+            if (Math.random() > 0.7) {
+                setTimeout(() => {
+                    if (width) createHeartBurst(pos.x+ (Math.random()-0.5)*70, pos.y+ (Math.random()-0.5)*50);
+                }, 50);
+            }
+        }
+        
+        function updateSpecialHeartsTimer(now) {
+            if (!lastSpecialHeartTime) lastSpecialHeartTime = now;
+            if (now - lastSpecialHeartTime > SPECIAL_HEART_INTERVAL) {
+                if (specialHearts.length < 6) createFloatingTextHeart();
+                lastSpecialHeartTime = now;
+            }
+        }
+        
+        let animFrame;
+        function animate() {
+            const now = performance.now();
+            if (!lastBurstTime) lastBurstTime = now;
+            if (now - lastBurstTime > BURST_INTERVAL_MS) {
+                burstRandomFirework();
+                lastBurstTime = now;
+            }
+            updateSpecialHeartsTimer(now);
+            updateParticles();
+            draw();
+            animFrame = requestAnimationFrame(animate);
+        }
+        
+        function resizeCanvas() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            if (specialHearts.length < 2) {
+                for(let i=0;i<2;i++) setTimeout(()=> createFloatingTextHeart(), 200*i);
+            }
+        }
+        
+        // ----- ДОБАВИТЬ ИСКРЫ (ручной фейерверк) -----
+        function manualSpark() {
+            if (!width || !height) return;
+            // создаём несколько ярких взрывов в разных частях экрана
+            const centerX = width / 2;
+            const centerY = height / 2;
+            for (let i = 0; i < 3; i++) {
+                const offsetX = (Math.random() - 0.5) * width * 0.6;
+                const offsetY = (Math.random() - 0.5) * height * 0.5;
+                createHeartBurst(centerX + offsetX, centerY + offsetY, Math.random() * 360);
+            }
+            // добавляем еще пару взрывов сверху
+            setTimeout(() => {
+                if (width) {
+                    createHeartBurst(width * 0.3, height * 0.2, 0);
+                    createHeartBurst(width * 0.7, height * 0.25, 340);
+                }
+            }, 60);
+            // также создаём парящее сердечко-сюрприз
+            setTimeout(() => {
+                if (specialHearts.length < 8) {
+                    specialHearts.push({
+                        x: width * 0.5, y: height * 0.5, vx: (Math.random() - 0.5)*0.7, vy: -0.8,
+                        text: "✨ Искры любви! ✨",
+                        size: 68, life: 1, opacity: 1, rotation: 3
+                    });
+                }
+            }, 100);
+        }
+        
+        // ----- ПОКАЗ БЕДНОГО ПАРНЯ С ЦВЕТКОМ -----
+        const poorGuyDiv = document.getElementById('poorGuyCard');
+        const closeBtn = document.getElementById('closeGuyBtn');
+        const forbiddenBtn = document.getElementById('forbiddenBtn');
+        const sparkBtn = document.getElementById('extraSpark');
+        
+        function showPoorGuy() {
+            if (!poorGuyDiv) return;
+            poorGuyDiv.classList.add('show');
+            clearTimeout(window.hideGuyTimeout);
+            window.hideGuyTimeout = setTimeout(() => {
+                if (poorGuyDiv.classList.contains('show')) {
+                    poorGuyDiv.classList.remove('show');
+                }
+            }, 10000);
+            
+            if (width && height) {
+                for(let i=0; i<4; i++) {
+                    setTimeout(() => {
+                        const randX = width * 0.7 + Math.random() * width * 0.25;
+                        const randY = height * 0.6 + Math.random() * height * 0.3;
+                        createHeartBurst(randX, randY, 15 + Math.random() * 40);
+                    }, i * 80);
+                }
+                setTimeout(() => {
+                    if (specialHearts.length < 8) {
+                        specialHearts.push({
+                            x: width - 100, y: height * 0.7, vx: -0.5, vy: -0.8,
+                            text: "💐 Нищий, но цветочек подарил! 💐",
+                            size: 65, life: 1, opacity: 1, rotation: -5
+                        });
+                    }
+                }, 200);
+            }
+        }
+        
+        function closePoorGuy() {
+            if (poorGuyDiv) poorGuyDiv.classList.remove('show');
+        }
+        
+        // Обработчики кнопок
+        if (sparkBtn) {
+            sparkBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                manualSpark();
+                // добавим маленькую анимацию нажатия
+                sparkBtn.style.transform = 'scale(0.96)';
+                setTimeout(() => { if(sparkBtn) sparkBtn.style.transform = ''; }, 120);
+            });
+        }
+        
+        if (forbiddenBtn) {
+            forbiddenBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                showPoorGuy();
+                if (width && height) {
+                    const rect = forbiddenBtn.getBoundingClientRect();
+                    const btnX = rect.left + rect.width/2;
+                    const btnY = rect.top + rect.height/2;
+                    createHeartBurst(btnX, btnY, 330);
+                    createHeartBurst(btnX + 20, btnY - 10, 10);
+                }
+                forbiddenBtn.style.transform = 'scale(0.98)';
+                setTimeout(() => { if(forbiddenBtn) forbiddenBtn.style.transform = ''; }, 150);
+            });
+        }
+        
+        if (closeBtn) {
+            closeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                closePoorGuy();
+            });
+        }
+        
+        // инициализация
+        function init() {
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            for(let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    if (width) {
+                        const x = width/2 + (Math.random() - 0.5) * width * 0.5;
+                        const y = height/2 + (Math.random() - 0.4) * height * 0.4;
+                        createHeartBurst(x, y);
+                    }
+                }, i * 160);
+            }
+            setTimeout(() => { createFloatingTextHeart(); createFloatingTextHeart(); }, 400);
+            animate();
+        }
+        
+        init();
+    })();
+</script>
+</body>
+</html>
